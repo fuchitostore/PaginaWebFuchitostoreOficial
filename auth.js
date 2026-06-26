@@ -1,14 +1,12 @@
-
-Auth · JS
 // ══════════════════════════════════════════════════════════════
 //  auth.js  —  FuchitoStore
 //  Login Google + Email/Password, modal de sesión, botón en nav
 //  Depende de: firebase-config.js (debe cargarse antes)
 // ══════════════════════════════════════════════════════════════
- 
+
 (function () {
   'use strict';
- 
+
   // ── Inyectar estilos del modal ─────────────────────────────
   var style = document.createElement('style');
   style.textContent = [
@@ -19,7 +17,7 @@ Auth · JS
       'align-items:center;justify-content:center',
     '}',
     '#fs-auth-overlay.fs-open{display:flex}',
- 
+
     /* Modal */
     '#fs-auth-modal{',
       'background:var(--bg2);border:1px solid rgba(57,255,20,0.2);',
@@ -27,7 +25,7 @@ Auth · JS
       'box-shadow:0 0 60px rgba(57,255,20,0.08),0 24px 64px rgba(0,0,0,0.6);',
       'position:relative',
     '}',
- 
+
     /* Cerrar */
     '#fs-auth-close{',
       'position:absolute;top:16px;right:16px;background:transparent;',
@@ -35,13 +33,13 @@ Auth · JS
       'transition:color 0.2s;line-height:1',
     '}',
     '#fs-auth-close:hover{color:var(--white)}',
- 
+
     /* Logo */
     '.fs-modal-logo{font-family:"Bebas Neue",sans-serif;font-size:1.6rem;',
       'letter-spacing:2px;color:var(--neon);text-align:center;margin-bottom:4px}',
     '.fs-modal-sub{font-size:0.75rem;color:rgba(255,255,255,0.4);',
       'text-align:center;margin-bottom:28px}',
- 
+
     /* Tabs */
     '.fs-tabs{display:flex;gap:0;border-bottom:1px solid rgba(255,255,255,0.08);margin-bottom:24px}',
     '.fs-tab{flex:1;padding:10px;background:transparent;border:none;',
@@ -49,7 +47,7 @@ Auth · JS
       'cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;',
       'transition:color 0.2s,border-color 0.2s}',
     '.fs-tab.active{color:var(--neon);border-bottom-color:var(--neon)}',
- 
+
     /* Inputs */
     '.fs-input{width:100%;background:var(--bg3);border:1px solid rgba(255,255,255,0.08);',
       'border-radius:8px;padding:11px 14px;font-size:0.85rem;color:var(--white);',
@@ -57,38 +55,38 @@ Auth · JS
       'font-family:"Inter",sans-serif}',
     '.fs-input:focus{border-color:rgba(57,255,20,0.4)}',
     '.fs-input::placeholder{color:rgba(255,255,255,0.22)}',
- 
+
     /* Botones */
     '.fs-btn-primary{width:100%;padding:12px;border-radius:8px;border:none;',
       'background:var(--neon);color:var(--bg);font-weight:700;font-size:0.85rem;',
       'cursor:pointer;transition:opacity 0.2s;margin-top:4px}',
     '.fs-btn-primary:hover{opacity:0.85}',
     '.fs-btn-primary:disabled{opacity:0.45;cursor:not-allowed}',
- 
+
     '.fs-btn-google{width:100%;padding:11px;border-radius:8px;',
       'border:1px solid rgba(255,255,255,0.12);background:var(--bg3);',
       'color:var(--white);font-weight:600;font-size:0.82rem;cursor:pointer;',
       'display:flex;align-items:center;justify-content:center;gap:10px;',
       'transition:border-color 0.2s;margin-bottom:16px}',
     '.fs-btn-google:hover{border-color:rgba(255,255,255,0.28)}',
- 
+
     /* Divider */
     '.fs-divider{display:flex;align-items:center;gap:10px;margin-bottom:16px}',
     '.fs-divider span{font-size:0.7rem;color:rgba(255,255,255,0.2)}',
     '.fs-divider::before,.fs-divider::after{content:"";flex:1;',
       'height:1px;background:rgba(255,255,255,0.07)}',
- 
+
     /* Error */
     '.fs-error{font-size:0.75rem;color:#FF3B3B;text-align:center;',
       'margin-top:10px;min-height:18px}',
- 
+
     /* Nav: botón usuario */
     '#fs-nav-btn{display:flex;align-items:center;gap:7px;background:transparent;',
       'border:1px solid rgba(57,255,20,0.3);color:var(--neon);',
       'font-weight:600;font-size:0.78rem;padding:9px 18px;border-radius:6px;',
       'cursor:pointer;transition:all 0.2s;white-space:nowrap}',
     '#fs-nav-btn:hover{background:rgba(57,255,20,0.08)}',
- 
+
     /* Menú desplegable */
     '#fs-nav-menu{position:absolute;top:calc(100% + 8px);right:0;',
       'background:var(--bg2);border:1px solid rgba(57,255,20,0.15);',
@@ -104,14 +102,14 @@ Auth · JS
     '.fs-menu-item:hover{background:rgba(255,255,255,0.05);color:var(--white)}',
     '.fs-menu-item.danger{color:rgba(255,80,80,0.8)}',
     '.fs-menu-item.danger:hover{color:#FF3B3B}',
- 
+
     /* Badge nivel en nav */
     '#fs-nav-badge{font-size:0.6rem;font-weight:700;padding:2px 7px;',
       'border-radius:20px;background:rgba(57,255,20,0.1);',
       'color:var(--neon);border:1px solid rgba(57,255,20,0.2)}',
   ].join('');
   document.head.appendChild(style);
- 
+
   // ── HTML: overlay + modal ──────────────────────────────────
   var overlayEl = document.createElement('div');
   overlayEl.id = 'fs-auth-overlay';
@@ -120,12 +118,12 @@ Auth · JS
       '<button id="fs-auth-close" aria-label="Cerrar">✕</button>',
       '<div class="fs-modal-logo">⚽ FuchitoStore</div>',
       '<div class="fs-modal-sub">Tu cuenta, tus jerseys, tus recompensas</div>',
- 
+
       '<div class="fs-tabs">',
         '<button class="fs-tab active" data-panel="login">Iniciar sesión</button>',
         '<button class="fs-tab" data-panel="register">Registrarse</button>',
       '</div>',
- 
+
       /* Login */
       '<div id="fs-panel-login">',
         '<button class="fs-btn-google" id="fs-google-login">',
@@ -138,7 +136,7 @@ Auth · JS
         '<button class="fs-btn-primary" id="fs-login-submit">Iniciar sesión</button>',
         '<div class="fs-error" id="fs-login-err"></div>',
       '</div>',
- 
+
       /* Register */
       '<div id="fs-panel-register" style="display:none">',
         '<button class="fs-btn-google" id="fs-google-register">',
@@ -155,13 +153,13 @@ Auth · JS
     '</div>',
   ].join('');
   document.body.appendChild(overlayEl);
- 
+
   // ── Inyectar botón en nav ──────────────────────────────────
   var basePath = (function() {
     var path = window.location.pathname;
     return path.substring(0, path.lastIndexOf('/') + 1);
   })();
- 
+
   var navWrapper = document.createElement('div');
   navWrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center';
   navWrapper.innerHTML =
@@ -173,7 +171,7 @@ Auth · JS
       '<hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:4px 0">' +
       '<button class="fs-menu-item danger" id="fs-logout-btn">🚪 Cerrar sesión</button>' +
     '</div>';
- 
+
   var navWa = document.querySelector('.nav-wa');
   var navEl = document.querySelector('nav');
   if (navWa && navWa.parentNode) {
@@ -181,7 +179,7 @@ Auth · JS
   } else if (navEl) {
     navEl.appendChild(navWrapper);
   }
- 
+
   // ── Referencias a elementos ────────────────────────────────
   var overlay     = document.getElementById('fs-auth-overlay');
   var navBtn      = document.getElementById('fs-nav-btn');
@@ -190,14 +188,14 @@ Auth · JS
   var closeBtn    = document.getElementById('fs-auth-close');
   var loginErr    = document.getElementById('fs-login-err');
   var regErr      = document.getElementById('fs-reg-err');
- 
+
   // ── Helpers ────────────────────────────────────────────────
   function openModal(panel) {
     overlay.classList.add('fs-open');
     showPanel(panel || 'login');
   }
   function closeModal() { overlay.classList.remove('fs-open'); }
- 
+
   function showPanel(id) {
     ['login','register'].forEach(function (p) {
       document.getElementById('fs-panel-' + p).style.display = p === id ? '' : 'none';
@@ -208,17 +206,17 @@ Auth · JS
     if (loginErr) loginErr.textContent = '';
     if (regErr)   regErr.textContent   = '';
   }
- 
+
   function setLoading(btnId, loading) {
     var btn = document.getElementById(btnId);
     if (btn) btn.disabled = loading;
   }
- 
+
   function errorMsg(elId, msg) {
     var el = document.getElementById(elId);
     if (el) el.textContent = msg;
   }
- 
+
   function translateError(code) {
     var msgs = {
       'auth/user-not-found'      : 'No existe una cuenta con ese correo.',
@@ -230,7 +228,7 @@ Auth · JS
     };
     return msgs[code] || 'Ocurrió un error. Intenta de nuevo.';
   }
- 
+
   // ── Crear / actualizar documento de usuario en Firestore ──
   function upsertUserDoc(user, extraData) {
     var ref = window.FS_DB.collection('usuarios').doc(user.uid);
@@ -247,24 +245,24 @@ Auth · JS
       }
     });
   }
- 
+
   // ── Google auth (compartida login/register) ────────────────
   function googleAuth() {
     var provider = new firebase.auth.GoogleAuthProvider();
     return window.FS_AUTH.signInWithPopup(provider);
   }
- 
+
   // ── Eventos: tabs ──────────────────────────────────────────
   document.querySelectorAll('.fs-tab').forEach(function (tab) {
     tab.addEventListener('click', function () { showPanel(tab.dataset.panel); });
   });
- 
+
   // ── Eventos: cerrar ────────────────────────────────────────
   closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function (e) {
     if (e.target === overlay) closeModal();
   });
- 
+
   // ── Google login ───────────────────────────────────────────
   document.getElementById('fs-google-login').addEventListener('click', function () {
     googleAuth().then(function (result) {
@@ -272,14 +270,14 @@ Auth · JS
     }).then(closeModal)
       .catch(function (e) { errorMsg('fs-login-err', translateError(e.code)); });
   });
- 
+
   document.getElementById('fs-google-register').addEventListener('click', function () {
     googleAuth().then(function (result) {
       return upsertUserDoc(result.user);
     }).then(closeModal)
       .catch(function (e) { errorMsg('fs-reg-err', translateError(e.code)); });
   });
- 
+
   // ── Email login ────────────────────────────────────────────
   document.getElementById('fs-login-submit').addEventListener('click', function () {
     var email = document.getElementById('fs-login-email').value.trim();
@@ -291,7 +289,7 @@ Auth · JS
       .catch(function (e) { errorMsg('fs-login-err', translateError(e.code)); })
       .finally(function () { setLoading('fs-login-submit', false); });
   });
- 
+
   // ── Email register ─────────────────────────────────────────
   document.getElementById('fs-reg-submit').addEventListener('click', function () {
     var nombre = document.getElementById('fs-reg-name').value.trim();
@@ -308,7 +306,7 @@ Auth · JS
       .catch(function (e) { errorMsg('fs-reg-err', translateError(e.code)); })
       .finally(function () { setLoading('fs-reg-submit', false); });
   });
- 
+
   // ── Nav: clic en botón ────────────────────────────────────
   navBtn.addEventListener('click', function (e) {
     e.stopPropagation();
@@ -320,9 +318,9 @@ Auth · JS
       openModal('login');
     }
   });
- 
+
   document.addEventListener('click', function () { navMenu.classList.remove('open'); });
- 
+
   // ── Logout ─────────────────────────────────────────────────
   document.getElementById('fs-logout-btn').addEventListener('click', function () {
     window.FS_AUTH.signOut().then(function () {
@@ -333,7 +331,7 @@ Auth · JS
       }
     });
   });
- 
+
   // ── Observer: actualizar nav según sesión ─────────────────
   window.FS_AUTH.onAuthStateChanged(function (user) {
     if (user) {
@@ -370,19 +368,9 @@ Auth · JS
       navBtn.innerHTML = '👤 Mi cuenta';
     }
   });
- 
+
   // ── Exponer apertura del modal globalmente ─────────────────
   // Útil para botones externos: window.FSAuth.openModal('register')
   window.FSAuth = { openModal: openModal, closeModal: closeModal };
- 
+
 })();
- 
-
-
-
-
-
-
-
-
-
