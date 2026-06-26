@@ -10,22 +10,22 @@
   // ── CONFIGURACIÓN DE NIVELES ───────────────────────────────
   var LEVELS = [
     {
-      id: 'aficionado', emoji: '⚽', label: 'Aficionado', min: 0, max: 99,
+      id: 'aficionado', emoji: '⚽', label: 'Aficionado', min: 0, max: 798,
       beneficios: ['Acceso al sistema de FuchiPoints', 'Caja diaria básica'],
       insignia: null
     },
     {
-      id: 'hincha', emoji: '🔥', label: 'Hincha', min: 100, max: 299,
+      id: 'hincha', emoji: '🔥', label: 'Hincha', min: 799, max: 2498,
       beneficios: ['Mayor probabilidad en caja diaria', 'Acceso a votaciones exclusivas'],
       insignia: '🔥'
     },
     {
-      id: 'coleccionista', emoji: '🏆', label: 'Coleccionista', min: 300, max: 699,
+      id: 'coleccionista', emoji: '🏆', label: 'Coleccionista', min: 2499, max: 4999,
       beneficios: ['Acceso anticipado a nuevos catálogos', 'Insignia especial en perfil', 'Cupón único 5% al alcanzar este nivel'],
       insignia: '🏆'
     },
     {
-      id: 'leyenda', emoji: '👑', label: 'Leyenda Fuchito', min: 700, max: Infinity,
+      id: 'leyenda', emoji: '👑', label: 'Leyenda Fuchito', min: 5000, max: Infinity,
       beneficios: ['Prioridad en preventas', 'Insignia exclusiva', 'Cupón único 10% al alcanzar este nivel', 'Probabilidad especial en caja diaria'],
       insignia: '👑'
     }
