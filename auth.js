@@ -178,14 +178,24 @@
         } else if (user.displayName) {
           nombre = user.displayName.split(' ')[0];
         }
+        // Recalcular nivel desde puntos para que siempre sea correcto
+        var puntos = data ? (data.puntosAcumulados || 0) : 0;
+        var nivelCalc = 'aficionado';
+        if (puntos >= 5000) nivelCalc = 'leyenda';
+        else if (puntos >= 2499) nivelCalc = 'coleccionista';
+        else if (puntos >= 799) nivelCalc = 'hincha';
         var niveles = {
-          aficionado: '⚽',
-          hincha: '🔥',
-          coleccionista: '🏆',
-          leyenda: '👑'
+          aficionado: { emoji: '⚽', label: 'Aficionado' },
+          hincha: { emoji: '🔥', label: 'Hincha' },
+          coleccionista: { emoji: '🏆', label: 'Coleccionista' },
+          leyenda: { emoji: '👑', label: 'Leyenda' }
         };
-        var emoji = niveles[nivel] || '⚽';
-        navBtn.innerHTML = '👤 ' + nombre + ' <span id="fs-nav-badge">' + emoji + ' ' + nivel.charAt(0).toUpperCase() + nivel.slice(1) + '</span>';
+        var n = niveles[nivelCalc] || niveles.aficionado;
+        navBtn.innerHTML = '👤 ' + nombre + ' <span id="fs-nav-badge">' + n.emoji + ' ' + n.label + '</span>';
+        // Corregir en Firestore si el nivel guardado es incorrecto
+        if (snap.exists && snap.data().nivel !== nivelCalc) {
+          window.FS_DB.collection('usuarios').doc(user.uid).update({ nivel: nivelCalc }).catch(function(){});
+        }
       }).catch(function () {
         navBtn.innerHTML = '👤 ' + (user.displayName ? user.displayName.split(' ')[0] : 'Cuenta');
       });
