@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiénes Somos — FuchitoStore</title>
+<meta name="description" content="Conoce la historia de FuchitoStore, la tienda de jerseys personalizados de Tamaulipas. Somos apasionados del futbol que queremos vestir a cada fan.">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090f;--bg2:#0f0f18;--bg3:#14141f;--bg4:#1c1c2a;
+  --neon:#39FF14;--gold:#FFB700;--red:#FF3B3B;
+  --white:#fff;--muted:rgba(255,255,255,0.45);--border:rgba(255,255,255,0.07);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);padding-top:62px}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 36px;background:rgba(9,9,15,0.92);backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border)}
+.nav-logo{display:flex;align-items:center;gap:8px;font-family:'Bebas Neue',sans-serif;
+  font-size:1.4rem;letter-spacing:2px;color:var(--neon);text-decoration:none}
+.nav-logo span{color:var(--white)}
+.nav-links{display:flex;align-items:center;gap:24px}
+.nav-link{font-size:0.78rem;font-weight:500;color:rgba(255,255,255,0.6);
+  text-decoration:none;transition:color 0.2s}
+.nav-link:hover,.nav-link.active{color:var(--white)}
+.nav-wa{display:flex;align-items:center;gap:7px;background:#25D366;color:#fff;
+  font-weight:700;font-size:0.78rem;border:none;padding:9px 18px;border-radius:6px;
+  cursor:pointer;text-decoration:none;transition:background 0.2s}
+.nav-wa:hover{background:#1db954}
+
+/* HERO */
+.qs-hero{padding:80px 36px 60px;text-align:center;
+  background:radial-gradient(ellipse at 50% 0%, rgba(57,255,20,0.06) 0%, transparent 70%)}
+.qs-tag{font-size:0.7rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--neon);margin-bottom:16px}
+.qs-hero h1{font-family:'Bebas Neue',sans-serif;font-size:4rem;
+  letter-spacing:3px;line-height:1;margin-bottom:24px}
+.qs-hero p{font-size:1rem;color:var(--muted);max-width:560px;
+  margin:0 auto;line-height:1.8}
+
+/* HISTORIA */
+.qs-section{max-width:900px;margin:0 auto;padding:60px 36px}
+.qs-grid{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;margin-bottom:80px}
+.qs-grid.reverse{direction:rtl}
+.qs-grid.reverse > *{direction:ltr}
+.qs-text-tag{font-size:0.65rem;letter-spacing:3px;text-transform:uppercase;
+  color:var(--neon);margin-bottom:12px}
+.qs-text h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;
+  letter-spacing:1.5px;line-height:1.1;margin-bottom:16px}
+.qs-text p{font-size:0.92rem;line-height:1.8;color:rgba(255,255,255,0.7);margin-bottom:14px}
+
+/* FUCHITO */
+.qs-fuchito{background:var(--bg2);border:1px solid rgba(57,255,20,0.15);
+  border-radius:20px;padding:32px;text-align:center}
+.qs-fuchito-emoji{font-size:4rem;margin-bottom:16px;display:block}
+.qs-fuchito h3{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;
+  letter-spacing:2px;color:var(--neon);margin-bottom:8px}
+.qs-fuchito p{font-size:0.85rem;color:var(--muted);line-height:1.7}
+.qs-fuchito-badge{display:inline-block;background:rgba(57,255,20,0.1);
+  border:1px solid rgba(57,255,20,0.2);border-radius:20px;
+  padding:4px 14px;font-size:0.7rem;font-weight:700;
+  color:var(--neon);letter-spacing:1px;margin-bottom:16px}
+
+/* STATS */
+.qs-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:80px}
+.qs-stat{background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:24px;text-align:center}
+.qs-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;
+  color:var(--neon);line-height:1;margin-bottom:6px}
+.qs-stat-lbl{font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted)}
+
+/* VALORES */
+.qs-valores{margin-bottom:80px}
+.qs-valores h2{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;
+  letter-spacing:1.5px;margin-bottom:32px;text-align:center}
+.qs-valores-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.qs-valor{background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:24px}
+.qs-valor-icon{font-size:2rem;margin-bottom:12px}
+.qs-valor h3{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;
+  letter-spacing:1px;color:var(--neon);margin-bottom:8px}
+.qs-valor p{font-size:0.82rem;color:var(--muted);line-height:1.7}
+
+/* CTA */
+
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:24px 36px;
+  text-align:center;font-size:0.75rem;color:var(--muted)}
+
+@media(max-width:768px){
+  .qs-hero h1{font-size:2.8rem}
+  .qs-grid{grid-template-columns:1fr;gap:32px}
+  .qs-grid.reverse{direction:ltr}
+  .qs-stats{grid-template-columns:repeat(2,1fr)}
+  .qs-valores-grid{grid-template-columns:1fr}
+  nav{padding:0 16px}
+  .qs-section{padding:40px 20px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">⚽ Fuchito<span>Store</span></a>
+  <div class="nav-links">
+    <a href="index.html" class="nav-link">Jerseys</a>
+    <a href="quienes-somos.html" class="nav-link active">Nosotros</a>
+    <div id="fs-nav-slot" style="position:relative;display:inline-flex;align-items:center"></div>
+  </div>
+</nav>
+
+<div class="qs-hero">
+  <div class="qs-tag">Nuestra historia</div>
+  <h1>Quienes Somos</h1>
+  <p>Una tienda nacida en Tamaulipas con una sola misión: que cada fan pueda usar el jersey de su equipo con su nombre y número, sin pagar precios imposibles.</p>
+</div>
+
+<div class="qs-section">
+
+  <!-- STATS -->
+  <div class="qs-stats">
+    <div class="qs-stat">
+      <div class="qs-stat-num">+500</div>
+      <div class="qs-stat-lbl">Equipos disponibles</div>
+    </div>
+    <div class="qs-stat">
+      <div class="qs-stat-num">100%</div>
+      <div class="qs-stat-lbl">Personalizado</div>
+    </div>
+    <div class="qs-stat">
+      <div class="qs-stat-num">&lt;1</div>
+      <div class="qs-stat-lbl">Año en el mercado</div>
+    </div>
+    <div class="qs-stat">
+      <div class="qs-stat-num">MX</div>
+      <div class="qs-stat-lbl">Tamaulipas, México</div>
+    </div>
+  </div>
+
+  <!-- HISTORIA -->
+  <div class="qs-grid">
+    <div class="qs-text">
+      <div class="qs-text-tag">El origen</div>
+      <h2>Nació de la pasión por el futbol</h2>
+      <p>FuchitoStore empezó con una idea simple: que cada aficionado merece usar el jersey de su equipo con su propio nombre y número, sin complicaciones y a precios accesibles.</p>
+      <p>Somos un equipo de Tamaulipas apasionado por el futbol que decidió convertir esa pasión en algo real. En menos de un año hemos vestido a cientos de fans en todo México y el mundo.</p>
+    </div>
+    <div class="qs-fuchito">
+      <div class="qs-fuchito-badge">Embajador Oficial</div>
+      <span class="qs-fuchito-emoji">🐱</span>
+      <h3>Fuchito</h3>
+      <p>En su acta dice Gaspar, pero en la tienda todos le decimos <strong>Fuchito</strong>. Es el gato más futbolero de Tamaulipas y nuestra cara oficial. Representa todo lo que somos: auténticos, divertidos y siempre del lado de los fans.</p>
+    </div>
+  </div>
+
+  <!-- VALORES -->
+  <div class="qs-valores">
+    <h2>Lo que nos hace diferentes</h2>
+    <div class="qs-valores-grid">
+      <div class="qs-valor">
+        <div class="qs-valor-icon">💰</div>
+        <h3>Precios accesibles</h3>
+        <p>Jersey Fan desde $450 MXN y Jugador desde $550 MXN. Calidad sin pagar precios de boutique.</p>
+      </div>
+      <div class="qs-valor">
+        <div class="qs-valor-icon">✂️</div>
+        <h3>100% personalizado</h3>
+        <p>Tu nombre y número incluidos sin costo extra. Más de 500 equipos de todo el mundo.</p>
+      </div>
+      <div class="qs-valor">
+        <div class="qs-valor-icon">📦</div>
+        <h3>Envío gratis</h3>
+        <p>En pedidos de 2 o más piezas el envío no tiene costo. Mandamos a toda la república.</p>
+      </div>
+      <div class="qs-valor">
+        <div class="qs-valor-icon">💬</div>
+        <h3>Atención directa</h3>
+        <p>Te atendemos personalmente por WhatsApp. Sin bots, sin formularios eternos, solo nosotros.</p>
+      </div>
+      <div class="qs-valor">
+        <div class="qs-valor-icon">⚡</div>
+        <h3>Entrega rápida</h3>
+        <p>Procesamos tu pedido lo antes posible para que recibas tu jersey en el menor tiempo.</p>
+      </div>
+      <div class="qs-valor">
+        <div class="qs-valor-icon">🏆</div>
+        <h3>FuchiPoints</h3>
+        <p>Sistema de recompensas para fans fieles. Acumula puntos, sube de nivel y desbloquea beneficios exclusivos.</p>
+      </div>
+    </div>
+  </div>
+
+
+
+</div>
+
+<footer>
+  © 2025 FuchitoStore — Tamaulipas, México 🐱⚽
+</footer>
+
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="rewards.js"></script>
+</body>
+</html>
