@@ -1,5 +1,42 @@
 (function () {
   'use strict';
+  // Spotify acordeon
+  (function(){
+    function initSpotify(){
+      var widget = document.getElementById('spotifyWidget');
+      if(!widget) return;
+      var iframe = widget.querySelector('iframe');
+      if(!iframe) return;
+
+      var style = document.createElement('style');
+      style.textContent = '#spotifyWidget{transition:all 0.35s ease!important;overflow:visible!important}#spotify-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;background:#121212;padding:10px 14px;cursor:pointer;border:none;color:#fff;font-family:Inter,sans-serif;font-size:0.78rem;font-weight:600;gap:8px;border-radius:12px 12px 0 0}.sp-toggle-left{display:flex;align-items:center;gap:8px}.sp-arrow{font-size:0.7rem;color:rgba(255,255,255,0.4);transition:transform 0.3s ease;display:inline-block}#spotifyWidget.sp-open .sp-arrow{transform:rotate(180deg)}#spotify-body{max-height:0;overflow:hidden;transition:max-height 0.35s ease}#spotifyWidget.sp-open #spotify-body{max-height:160px}';
+      document.head.appendChild(style);
+
+      widget.innerHTML = '';
+      var toggle = document.createElement('button');
+      toggle.id = 'spotify-toggle';
+      toggle.innerHTML = '<div class="sp-toggle-left"><span>🎵</span><span>Playlist FuchitoStore</span></div><span class="sp-arrow">▼</span>';
+      var body = document.createElement('div');
+      body.id = 'spotify-body';
+      body.appendChild(iframe);
+      widget.appendChild(toggle);
+      widget.appendChild(body);
+
+      var open = localStorage.getItem('sp-open') !== 'false';
+      if(open) widget.classList.add('sp-open');
+
+      toggle.addEventListener('click', function(){
+        var o = widget.classList.toggle('sp-open');
+        localStorage.setItem('sp-open', o);
+      });
+    }
+
+    if(document.readyState === 'loading'){
+      document.addEventListener('DOMContentLoaded', initSpotify);
+    } else {
+      initSpotify();
+    }
+  })();
 
   // Inyectar mobile.css
   (function(){var l=document.createElement('link');l.rel='stylesheet';l.href=(function(){var p=window.location.pathname;return p.substring(0,p.lastIndexOf('/')+1)+'mobile.css';})();document.head.appendChild(l);})();
@@ -223,4 +260,3 @@
   window.FSAuth = { openModal: openModal, closeModal: closeModal };
 
 })();
- 
