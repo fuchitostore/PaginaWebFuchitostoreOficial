@@ -112,7 +112,9 @@
       }).then(function () {
         favCache[itemId] = true;
         updateAllButtons();
-        showToast('❤️ Agregado a favoritos');
+        // Sumar 2.5 pts con límite de 10 favoritos/día
+        sumarPuntosFavorito(currentUid);
+        showToast('❤️ Agregado a favoritos +2.5 pts');
       }).catch(function (e) { console.warn('[Favoritos] Error al guardar:', e); });
     }
   }
@@ -187,6 +189,24 @@
 
   observer.observe(document.body, { childList: true, subtree: true });
 
+  // ── Sumar puntos por favorito (anti-farm: máx 10/día) ─────
+  function sumarPuntosFavorito(uid) {
+    if (!uid || !window.FSRewards) return;
+    var hoy = new Date().toISOString().slice(0, 10);
+    var ref = window.FS_DB.collection('usuarios').doc(uid);
+    ref.get().then(function(snap) {
+      if (!snap.exists) return;
+      var data = snap.data();
+      var favHoy = data.favPtsHoy || { fecha: '', count: 0 };
+      if (favHoy.fecha === hoy && favHoy.count >= 10) return; // límite diario
+      var nuevoCount = favHoy.fecha === hoy ? favHoy.count + 1 : 1;
+      window.FSRewards.sumarPuntos(uid, 2.5, function(res) {
+        ref.update({ favPtsHoy: { fecha: hoy, count: nuevoCount } });
+        if (res && res.subioNivel) showToast('🎉 Subiste a ' + res.nivelNuevo + '!');
+      });
+    });
+  }
+
   // ── API pública ────────────────────────────────────────────
   window.FSFavorites = {
     reload: function () { if (currentUid) loadFavorites(currentUid); },
@@ -194,3 +214,4 @@
   };
 
 })();
+
