@@ -1,5 +1,8 @@
 (function () {
   'use strict';
+
+  // Cargar donaciones.js
+  (function(){var s=document.createElement('script');s.src=(function(){var p=window.location.pathname;return p.substring(0,p.lastIndexOf('/')+1)+'donaciones.js';})();document.head.appendChild(s);})();
   // Spotify acordeon
   (function(){
     function initSpotify(){
@@ -260,3 +263,5 @@
   window.FSAuth = { openModal: openModal, closeModal: closeModal };
 
 })();
+      
+  
