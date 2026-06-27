@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — FuchitoStore</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#09090f;--bg2:#0f0f18;--bg3:#14141f;--neon:#39FF14;--gold:#FFB700;--red:#FF3B3B;--white:#fff;--muted:rgba(255,255,255,0.45);--border:rgba(255,255,255,0.07)}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;padding:20px}
+#admin-lock{display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:16px;text-align:center}
+#admin-lock h1{font-family:'Bebas Neue',sans-serif;font-size:2rem;color:var(--red)}
+#admin-panel{display:none;max-width:900px;margin:0 auto}
+.adm-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px}
+.adm-title{font-family:'Bebas Neue',sans-serif;font-size:2.5rem;letter-spacing:2px;color:var(--neon)}
+.adm-sub{font-size:0.78rem;color:var(--muted)}
+.adm-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:32px}
+.adm-stat{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;text-align:center}
+.adm-stat-num{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--neon);line-height:1}
+.adm-stat-lbl{font-size:0.7rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.adm-section{margin-bottom:32px}
+.adm-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px;margin-bottom:16px;color:var(--white)}
+.adm-table{width:100%;border-collapse:collapse}
+.adm-table th{text-align:left;font-size:0.68rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--border)}
+.adm-table td{padding:12px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.82rem;vertical-align:top}
+.adm-table tr:hover td{background:rgba(255,255,255,0.02)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.68rem;font-weight:700}
+.badge-neon{background:rgba(57,255,20,0.1);color:var(--neon);border:1px solid rgba(57,255,20,0.2)}
+.badge-gold{background:rgba(255,183,0,0.1);color:var(--gold);border:1px solid rgba(255,183,0,0.2)}
+.badge-red{background:rgba(255,59,59,0.1);color:var(--red);border:1px solid rgba(255,59,59,0.2)}
+.adm-empty{text-align:center;padding:40px;color:var(--muted);font-size:0.85rem}
+.adm-loading{text-align:center;padding:40px;color:var(--muted)}
+.adm-refresh{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.78rem;transition:all 0.2s}
+.adm-refresh:hover{border-color:var(--neon);color:var(--neon)}
+@media(max-width:600px){.adm-table{font-size:0.75rem}.adm-table th,.adm-table td{padding:8px}}
+</style>
+</head>
+<body>
+
+<div id="admin-lock">
+  <div style="font-size:3rem">🔒</div>
+  <h1>Acceso restringido</h1>
+  <p style="color:var(--muted);font-size:0.85rem">Verificando identidad...</p>
+</div>
+
+<div id="admin-panel">
+  <div class="adm-header">
+    <div>
+      <div class="adm-title">⚙️ Admin FuchitoStore</div>
+      <div class="adm-sub">Panel de control — solo tú puedes ver esto</div>
+    </div>
+    <button class="adm-refresh" onclick="cargarDatos()">🔄 Actualizar</button>
+  </div>
+
+  <div class="adm-stats">
+    <div class="adm-stat"><div class="adm-stat-num" id="stat-usuarios">—</div><div class="adm-stat-lbl">Usuarios</div></div>
+    <div class="adm-stat"><div class="adm-stat-num" id="stat-canjes">—</div><div class="adm-stat-lbl">Canjes totales</div></div>
+    <div class="adm-stat"><div class="adm-stat-num" id="stat-pts">—</div><div class="adm-stat-lbl">Puntos en circulación</div></div>
+    <div class="adm-stat"><div class="adm-stat-num" id="stat-leyendas">—</div><div class="adm-stat-lbl">Leyendas</div></div>
+  </div>
+
+  <div class="adm-section">
+    <div class="adm-section-title">🎁 Canjes recientes</div>
+    <div id="tabla-canjes"><div class="adm-loading">Cargando...</div></div>
+  </div>
+
+  <div class="adm-section">
+    <div class="adm-section-title">👥 Todos los usuarios</div>
+    <div id="tabla-usuarios"><div class="adm-loading">Cargando...</div></div>
+  </div>
+</div>
+
+<script src="firebase-config.js"></script>
+<script>
+var ADMIN_UID = 'TQ07ngkTALQWqV6bv3zjHJvGx593';
+
+window.FS_AUTH.onAuthStateChanged(function(user) {
+  if (!user || user.uid !== ADMIN_UID) {
+    document.getElementById('admin-lock').innerHTML =
+      '<div style="font-size:3rem">🚫</div>' +
+      '<h1 style="color:var(--red)">Acceso denegado</h1>' +
+      '<p style="color:var(--muted)">No tienes permisos para ver esta página.</p>' +
+      '<a href="index.html" style="color:var(--neon);font-size:0.85rem">← Volver a la tienda</a>';
+    return;
+  }
+  document.getElementById('admin-lock').style.display = 'none';
+  document.getElementById('admin-panel').style.display = 'block';
+  cargarDatos();
+});
+
+function cargarDatos() {
+  window.FS_DB.collection('usuarios').get().then(function(snap) {
+    var usuarios = [];
+    var totalPts = 0;
+    var totalCanjes = 0;
+    var leyendas = 0;
+    var canjes = [];
+
+    snap.forEach(function(doc) {
+      var d = doc.data();
+      usuarios.push({ uid: doc.id, ...d });
+      totalPts += d.puntosAcumulados || 0;
+      if (d.nivel === 'leyenda') leyendas++;
+      if (d.ultimoCanje) {
+        totalCanjes++;
+        canjes.push({
+          usuario: d.nombre || d.email || doc.id.slice(0,8),
+          email: d.email || '—',
+          ...d.ultimoCanje
+        });
+      }
+    });
+
+    // Stats
+    document.getElementById('stat-usuarios').textContent = snap.size;
+    document.getElementById('stat-canjes').textContent = totalCanjes;
+    document.getElementById('stat-pts').textContent = totalPts.toLocaleString();
+    document.getElementById('stat-leyendas').textContent = leyendas;
+
+    // Tabla canjes
+    var tcEl = document.getElementById('tabla-canjes');
+    if (canjes.length === 0) {
+      tcEl.innerHTML = '<div class="adm-empty">No hay canjes registrados aún.</div>';
+    } else {
+      canjes.sort(function(a,b){ return new Date(b.fecha) - new Date(a.fecha); });
+      var html = '<table class="adm-table"><thead><tr>' +
+        '<th>Usuario</th><th>Beneficio</th><th>Pts</th><th>Código</th><th>Fecha</th>' +
+        '</tr></thead><tbody>';
+      canjes.forEach(function(c) {
+        var fecha = c.fecha ? new Date(c.fecha).toLocaleString('es-MX') : '—';
+        html += '<tr>' +
+          '<td><div>' + (c.usuario||'—') + '</div><div style="color:var(--muted);font-size:0.7rem">' + (c.email||'') + '</div></td>' +
+          '<td>' + (c.beneficio||'—') + '</td>' +
+          '<td><span class="badge badge-gold">' + (c.pts||0).toLocaleString() + '</span></td>' +
+          '<td><span class="badge badge-neon">' + (c.codigo||'—') + '</span></td>' +
+          '<td style="color:var(--muted);font-size:0.75rem">' + fecha + '</td>' +
+          '</tr>';
+      });
+      html += '</tbody></table>';
+      tcEl.innerHTML = html;
+    }
+
+    // Tabla usuarios
+    var tuEl = document.getElementById('tabla-usuarios');
+    var html2 = '<table class="adm-table"><thead><tr>' +
+      '<th>Nombre</th><th>Email</th><th>Nivel</th><th>Puntos</th><th>Miembro desde</th>' +
+      '</tr></thead><tbody>';
+    usuarios.sort(function(a,b){ return (b.puntosAcumulados||0) - (a.puntosAcumulados||0); });
+    usuarios.forEach(function(u) {
+      var niveles = { aficionado:'⚽ Aficionado', hincha:'🔥 Hincha', coleccionista:'🏆 Coleccionista', leyenda:'👑 Leyenda' };
+      var fecha = u.fechaRegistro ? new Date(u.fechaRegistro.seconds*1000).toLocaleDateString('es-MX') : '—';
+      var badgeClass = u.nivel === 'leyenda' ? 'badge-gold' : u.nivel === 'coleccionista' ? 'badge-neon' : '';
+      html2 += '<tr>' +
+        '<td>' + (u.nombre||'—') + '</td>' +
+        '<td style="color:var(--muted);font-size:0.75rem">' + (u.email||'—') + '</td>' +
+        '<td><span class="badge ' + badgeClass + '">' + (niveles[u.nivel]||'⚽ Aficionado') + '</span></td>' +
+        '<td><strong style="color:var(--neon)">' + (u.puntosAcumulados||0).toLocaleString() + '</strong></td>' +
+        '<td style="color:var(--muted);font-size:0.75rem">' + fecha + '</td>' +
+        '</tr>';
+    });
+    html2 += '</tbody></table>';
+    tuEl.innerHTML = html2;
+  });
+}
+</script>
+</body>
+</html>
