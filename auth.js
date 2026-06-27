@@ -12,16 +12,29 @@
   overlayEl.innerHTML = '<div id="fs-auth-modal"><button id="fs-auth-close" aria-label="Cerrar">X</button><div class="fs-modal-logo">Fuchito Store</div><div class="fs-modal-sub">Tu cuenta, tus jerseys, tus recompensas</div><div class="fs-tabs"><button class="fs-tab active" data-panel="login">Iniciar sesion</button><button class="fs-tab" data-panel="register">Registrarse</button></div><div id="fs-panel-login"><button class="fs-btn-google" id="fs-google-login">' + googleSVG + 'Continuar con Google</button><div class="fs-divider"><span>o</span></div><input class="fs-input" id="fs-login-email" type="email" placeholder="Correo electronico" autocomplete="email"><input class="fs-input" id="fs-login-pass" type="password" placeholder="Contrasena" autocomplete="current-password"><button class="fs-btn-primary" id="fs-login-submit">Iniciar sesion</button><div class="fs-error" id="fs-login-err"></div></div><div id="fs-panel-register" style="display:none"><button class="fs-btn-google" id="fs-google-register">' + googleSVG + 'Registrarse con Google</button><div class="fs-divider"><span>o</span></div><input class="fs-input" id="fs-reg-name" type="text" placeholder="Tu nombre" autocomplete="name"><input class="fs-input" id="fs-reg-email" type="email" placeholder="Correo electronico" autocomplete="email"><input class="fs-input" id="fs-reg-pass" type="password" placeholder="Contrasena (min. 6 caracteres)" autocomplete="new-password"><button class="fs-btn-primary" id="fs-reg-submit">Crear cuenta</button><div class="fs-error" id="fs-reg-err"></div></div></div>';
   document.body.appendChild(overlayEl);
 
-  var basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+    var basePath = window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+
+  // Agregar link Nosotros en la nav
+  var nosotrosLink = document.createElement('a');
+  nosotrosLink.href = basePath + 'quienes-somos.html';
+  nosotrosLink.textContent = 'Nosotros';
+  nosotrosLink.style.cssText = 'font-size:0.78rem;font-weight:500;color:rgba(255,255,255,0.6);text-decoration:none;margin-right:8px;transition:color 0.2s';
+  nosotrosLink.onmouseover = function(){ this.style.color='#fff'; };
+  nosotrosLink.onmouseout = function(){ this.style.color='rgba(255,255,255,0.6)'; };
+  if (window.location.pathname.indexOf('quienes-somos') !== -1) {
+    nosotrosLink.style.color = '#fff';
+  }
 
   var navWrapper = document.createElement('div');
   navWrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center';
   navWrapper.innerHTML = '<button id="fs-nav-btn">Mi cuenta</button><div id="fs-nav-menu"><a href="' + basePath + 'account.html" class="fs-menu-item">Mi perfil</a><a href="' + basePath + 'account.html#micoleccion" class="fs-menu-item">Mi Coleccion</a><a href="' + basePath + 'account.html#recompensas" class="fs-menu-item">FuchiPoints</a><hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:4px 0"><button class="fs-menu-item danger" id="fs-logout-btn">Cerrar sesion</button></div>';
 
+  // Insertar link Nosotros antes del botón de cuenta
   var slot = document.getElementById('fs-nav-slot');
   var navWa = document.querySelector('.nav-wa');
   var navEl = document.querySelector('nav');
   if (slot) {
+    slot.parentNode.insertBefore(nosotrosLink, slot);
     slot.appendChild(navWrapper);
   } else if (navWa && navWa.parentNode) {
     navWa.parentNode.insertBefore(navWrapper, navWa);
