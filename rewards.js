@@ -291,6 +291,62 @@
     }
   });
 
+  // ── PUNTOS POR EXPLORAR (anti-farm: máx 3 equipos/día) ───
+  function registrarExploracion(uid) {
+    if (!uid) return;
+    var hoy = new Date().toISOString().slice(0, 10);
+    var ref = window.FS_DB.collection('usuarios').doc(uid);
+    ref.get().then(function(snap) {
+      if (!snap.exists) return;
+      var data = snap.data();
+      var expHoy = data.expPtsHoy || { fecha: '', count: 0 };
+      if (expHoy.fecha === hoy && expHoy.count >= 3) return; // máx 3 equipos/día
+      var nuevoCount = expHoy.fecha === hoy ? expHoy.count + 1 : 1;
+      sumarPuntos(uid, 5, function(res) {
+        ref.update({ expPtsHoy: { fecha: hoy, count: nuevoCount } });
+        // Mostrar toast sutil
+        var toast = document.createElement('div');
+        toast.textContent = '+5 FuchiPoints por explorar';
+        toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid rgba(57,255,20,0.2);border-radius:8px;padding:8px 16px;font-size:0.75rem;font-weight:600;color:var(--neon);z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.3s';
+        document.body.appendChild(toast);
+        setTimeout(function(){ toast.style.opacity='1'; }, 50);
+        setTimeout(function(){ toast.style.opacity='0'; setTimeout(function(){ toast.remove(); }, 300); }, 2000);
+        if (res && res.subioNivel) {
+          setTimeout(function(){
+            var t2 = document.createElement('div');
+            t2.textContent = '🎉 Subiste a nivel ' + res.nivelNuevo + '!';
+            t2.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(57,255,20,0.15);border:1px solid var(--neon);border-radius:8px;padding:10px 20px;font-size:0.82rem;font-weight:700;color:var(--neon);z-index:9999;pointer-events:none;opacity:0;transition:opacity 0.3s';
+            document.body.appendChild(t2);
+            setTimeout(function(){ t2.style.opacity='1'; }, 50);
+            setTimeout(function(){ t2.style.opacity='0'; setTimeout(function(){ t2.remove(); }, 300); }, 3000);
+          }, 500);
+        }
+      });
+    });
+  }
+
+  // Enganchar exploración a los acordeones del catálogo
+  function initExploracionTracker() {
+    document.querySelectorAll('.cat-acc-head').forEach(function(btn) {
+      if (btn.dataset.expTracked) return;
+      btn.dataset.expTracked = '1';
+      btn.addEventListener('click', function() {
+        var user = window.FS_AUTH && window.FS_AUTH.currentUser;
+        if (user) registrarExploracion(user.uid);
+      });
+    });
+  }
+
+  // Observar cuando se agregan nuevos acordeones dinámicamente
+  var expObserver = new MutationObserver(function() { initExploracionTracker(); });
+  expObserver.observe(document.body, { childList: true, subtree: true });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initExploracionTracker);
+  } else {
+    initExploracionTracker();
+  }
+
   // ── API PÚBLICA ────────────────────────────────────────────
   window.FSRewards = {
     LEVELS         : LEVELS,
@@ -304,3 +360,4 @@
   };
 
 })();
+  
