@@ -1,28 +1,25 @@
 // catalogo-barcelona.js — Inyecta imágenes del Barcelona al catálogo
 (function(){
-  function init(){
-    if (typeof CATALOG_DATA === 'undefined') return setTimeout(init, 100);
-    
-    var imgs = [];
-    for(var i = 1; i <= 62; i++){
-      imgs.push('catalogo/barcelona/barcelona-' + i + '.jpg');
+  var imgs = [];
+  for(var i = 1; i <= 62; i++){
+    imgs.push('catalogo/barcelona/barcelona-' + i + '.jpg');
+  }
+
+  function inject(){
+    if(typeof CATALOG_DATA === 'undefined'){
+      setTimeout(inject, 200);
+      return;
     }
-    
     CATALOG_DATA['grid-barcelona'] = {
       team: 'Barcelona',
       images: imgs
     };
-
-    // Si el grid ya existe en el DOM, cargarlo
-    var grid = document.getElementById('grid-barcelona');
-    if(grid && grid.children.length === 0 && typeof loadGrid === 'function'){
-      loadGrid('grid-barcelona');
-    }
   }
 
+  // Esperar a que todo esté listo
   if(document.readyState === 'loading'){
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function(){ setTimeout(inject, 500); });
   } else {
-    init();
+    setTimeout(inject, 500);
   }
 })();
