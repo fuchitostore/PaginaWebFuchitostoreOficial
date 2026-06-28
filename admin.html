@@ -123,7 +123,7 @@ function cargarDatos() {
 
     // Tabla canjes desde colección independiente
     var tcEl = document.getElementById('tabla-canjes');
-    window.FS_DB.collection('canjes').orderBy('fecha', 'desc').get().then(function(canjeSnap) {
+    window.FS_DB.collection('canjes').get().then(function(canjeSnap) {
       document.getElementById('stat-canjes').textContent = canjeSnap.size;
       if (canjeSnap.empty) {
         tcEl.innerHTML = '<div class="adm-empty">No hay canjes registrados aún.</div>';
@@ -131,8 +131,8 @@ function cargarDatos() {
         var html = '<table class="adm-table"><thead><tr>' +
           '<th>Usuario</th><th>Beneficio</th><th>Pts</th><th>Código</th><th>Fecha</th>' +
           '</tr></thead><tbody>';
-        canjeSnap.forEach(function(doc) {
-          var c = doc.data();
+        var canjesDocs = []; canjeSnap.forEach(function(doc){ canjesDocs.push(doc.data()); }); canjesDocs.sort(function(a,b){ return new Date(b.fecha) - new Date(a.fecha); }); canjesDocs.forEach(function(c) {
+          
           var fecha = c.fecha ? new Date(c.fecha).toLocaleString('es-MX') : '—';
           html += '<tr>' +
             '<td><div>' + (c.nombre||'—') + '</div><div style="color:var(--muted);font-size:0.7rem">' + (c.email||'') + '</div></td>' +
