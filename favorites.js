@@ -95,7 +95,7 @@
       ref.delete().then(function () {
         delete favCache[itemId];
         updateAllButtons();
-        showToast('❌ Eliminado de tus favoritos');
+        (window.FSToast ? window.FSToast('❌ Eliminado de favoritos', 'error') : null);
       }).catch(function (e) { console.warn('[Favoritos] Error al eliminar:', e); });
     } else {
       // Agregar
@@ -114,7 +114,7 @@
         updateAllButtons();
         // Sumar 2.5 pts con límite de 10 favoritos/día
         sumarPuntosFavorito(currentUid);
-        showToast('❤️ Agregado a favoritos +2.5 pts');
+        (window.FSToast ? window.FSToast('❤️ +2.5 FuchiPoints', 'success') : null);
       }).catch(function (e) { console.warn('[Favoritos] Error al guardar:', e); });
     }
   }
