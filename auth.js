@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  // Cargar catálogo Barcelona
+  (function(){var s=document.createElement('script');s.src=(function(){var p=window.location.pathname;return p.substring(0,p.lastIndexOf('/')+1)+'catalogo-barcelona.js';})();document.head.appendChild(s);})();
+
   // Sistema de toasts premium
   (function(){
     var toastStyle = document.createElement('style');
@@ -302,5 +305,3 @@
   window.FSAuth = { openModal: openModal, closeModal: closeModal };
 
 })();
-      
-  
