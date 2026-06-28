@@ -1,0 +1,134 @@
+<!-- ═══════════════════════════════════════════════════════
+     AVISO: "TRABAJANDO EN EL CATÁLOGO" (con Fuchito)
+     Aparece cuando el visitante llega a la sección #catalogo.
+     Se puede cerrar con la 'x'. Solo aparece UNA VEZ por visita
+     (usa sessionStorage, igual que tu popup existente).
+
+     CÓMO INSTALARLO (sin tocar nada más de tu index.html):
+     1. Sube la foto de Fuchito a tu repo, por ejemplo en:
+        catalogo/fuchito-trabajando.jpg
+        (ajusta la ruta en el <img src="..."> de abajo si la
+        pones en otro lugar)
+     2. Pega TODO este bloque justo antes de </body>
+        (al final del archivo, antes de que cierre el body)
+     3. Listo. No necesitas tocar ninguna otra parte del HTML.
+     ═══════════════════════════════════════════════════════ -->
+
+<style>
+  #avisoCatalogo{
+    position:fixed;
+    bottom:24px;
+    right:24px;
+    z-index:9999;
+    max-width:320px;
+    background:#0d0d0d;
+    border:1px solid rgba(57,255,20,0.35);
+    border-radius:14px;
+    box-shadow:0 10px 40px rgba(0,0,0,0.5), 0 0 24px rgba(57,255,20,0.15);
+    padding:14px;
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    opacity:0;
+    transform:translateY(16px) scale(0.96);
+    transition:opacity 0.4s ease, transform 0.4s ease;
+    pointer-events:none;
+    font-family:inherit;
+  }
+  #avisoCatalogo.show{
+    opacity:1;
+    transform:translateY(0) scale(1);
+    pointer-events:auto;
+  }
+  #avisoCatalogo img{
+    width:56px;
+    height:56px;
+    border-radius:10px;
+    object-fit:cover;
+    border:1px solid rgba(57,255,20,0.3);
+    flex-shrink:0;
+  }
+  #avisoCatalogo .aviso-texto{
+    flex:1;
+    min-width:0;
+  }
+  #avisoCatalogo .aviso-titulo{
+    color:#39ff14;
+    font-weight:700;
+    font-size:0.82rem;
+    letter-spacing:0.3px;
+    margin-bottom:3px;
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  #avisoCatalogo .aviso-msg{
+    color:#cfcfcf;
+    font-size:0.78rem;
+    line-height:1.35;
+  }
+  #avisoCatalogo .aviso-cerrar{
+    background:none;
+    border:none;
+    color:#888;
+    font-size:1.1rem;
+    line-height:1;
+    cursor:pointer;
+    padding:2px 4px;
+    flex-shrink:0;
+    transition:color 0.2s;
+  }
+  #avisoCatalogo .aviso-cerrar:hover{
+    color:#fff;
+  }
+  @media (max-width:480px){
+    #avisoCatalogo{
+      left:16px;
+      right:16px;
+      bottom:16px;
+      max-width:none;
+    }
+  }
+</style>
+
+<div id="avisoCatalogo">
+  <img src="catalogo/fuchito-trabajando.jpg" alt="Fuchito trabajando">
+  <div class="aviso-texto">
+    <div class="aviso-titulo">🚧 Trabajando en el catálogo</div>
+    <div class="aviso-msg">Estamos agregando más equipos y mejorando esta sección. ¡Gracias por tu paciencia! 🐾</div>
+  </div>
+  <button class="aviso-cerrar" id="avisoCerrar" aria-label="Cerrar aviso">✕</button>
+</div>
+
+<script>
+(function(){
+  var KEY = 'avisoCatalogoVisto';
+  var aviso = document.getElementById('avisoCatalogo');
+  var btnCerrar = document.getElementById('avisoCerrar');
+  var catalogoEl = document.getElementById('catalogo');
+
+  if (!aviso || !catalogoEl) return;
+
+  var yaVisto = false;
+  try { yaVisto = sessionStorage.getItem(KEY) === '1'; } catch(e){}
+  if (yaVisto) return; // ya lo vio en esta sesión, no molestamos otra vez
+
+  function cerrarAviso(){
+    aviso.classList.remove('show');
+    try { sessionStorage.setItem(KEY, '1'); } catch(e){}
+  }
+
+  btnCerrar.addEventListener('click', cerrarAviso);
+
+  var obsAviso = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if (entry.isIntersecting) {
+        aviso.classList.add('show');
+        obsAviso.unobserve(entry.target);
+      }
+    });
+  }, {threshold: 0.15});
+
+  obsAviso.observe(catalogoEl);
+})();
+</script>
