@@ -142,7 +142,7 @@
       var puntos = data.puntosAcumulados || 0;
 
       if (puntos < canje.pts) {
-        alert('No tienes suficientes puntos para este canje.');
+        (window.FSToast ? window.FSToast('No tienes suficientes puntos', 'error') : alert('No tienes suficientes puntos'));
         return;
       }
 
