@@ -24,6 +24,13 @@
     '.canje-btn:hover{opacity:0.85}',
     '.canje-btn.locked{background:var(--bg3);color:var(--muted);cursor:not-allowed;border:1px solid var(--border)}',
     '.canje-nota{font-size:0.73rem;color:var(--muted);text-align:center;margin-top:16px;line-height:1.6}',
+    '.canje-embajador{background:linear-gradient(135deg,rgba(255,183,0,0.08),rgba(57,255,20,0.05));border:1px solid rgba(255,183,0,0.3)!important;position:relative;overflow:hidden}',
+    '.canje-embajador::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,183,0,0.04),transparent);pointer-events:none}',
+    '.canje-embajador .canje-icon{font-size:2rem}',
+    '.canje-embajador .canje-nombre{color:var(--gold)!important;font-size:0.95rem!important}',
+    '.canje-embajador .canje-pts{color:var(--gold)!important;font-size:1.3rem!important}',
+    '.canje-embajador .canje-btn{background:linear-gradient(135deg,var(--gold),#ffcd60);color:#000}',
+    '.canje-embajador-tag{display:inline-block;background:rgba(255,183,0,0.15);border:1px solid rgba(255,183,0,0.3);border-radius:20px;padding:2px 10px;font-size:0.65rem;font-weight:700;color:var(--gold);letter-spacing:1px;margin-bottom:4px}',
 
     // Modal confirmación
     '#canje-overlay{display:none;position:fixed;inset:0;z-index:9500;background:rgba(9,9,15,0.92);backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px}',
@@ -59,11 +66,14 @@
   document.head.appendChild(style);
 
   var CANJES = [
-    { icon:'🚀', nombre:'Envío prioritario',           desc:'Tu pedido se procesa primero que los demás',       pts:500  },
-    { icon:'📦', nombre:'Envío gratis',                desc:'En tu próximo pedido aunque sea 1 pieza',          pts:1000 },
-    { icon:'💰', nombre:'$50 MXN de descuento',        desc:'Descuento directo en tu siguiente jersey',         pts:2500 },
-    { icon:'⭐', nombre:'Parche oficial de competición',desc:'Champions, Ligas o Copa incluido en tu jersey',   pts:4000 },
-    { icon:'👑', nombre:'$100 MXN + Acceso preventa',  desc:'Descuento exclusivo y primer acceso a novedades',  pts:7000 },
+    { icon:'⚡', nombre:'Prioridad de pedido',      desc:'Tu pedido tendrá prioridad en el proceso de preparación cuando sea posible.',                                                                                  pts:800   },
+    { icon:'🎁', nombre:'Caja Premium (7 días)',    desc:'Durante 7 días tu caja diaria tendrá una ligera mejora en las probabilidades de obtener mejores recompensas. No garantiza premios especiales.',               pts:1500  },
+    { icon:'🎟️', nombre:'Cupón 5%',                desc:'Obtén un cupón del 5% de descuento para utilizar en tu próxima compra. Un solo uso.',                                                                          pts:2000  },
+    { icon:'🚚', nombre:'Envío gratis',             desc:'Envío gratuito en tu siguiente pedido. Solo aplica para pedidos enviados, no para entregas presenciales.',                                                     pts:2500  },
+    { icon:'🎁', nombre:'Caja Misteriosa',          desc:'Abre una caja con una recompensa aleatoria. Puede contener FuchiPoints, una Caja Premium o un cupón de descuento. Cada apertura es diferente.',              pts:4000  },
+    { icon:'👑', nombre:'Pase VIP (30 días)',       desc:'Durante 30 días: prioridad de pedido, caja diaria con mejora en probabilidades e insignia VIP visible en tu perfil.',                                         pts:5000  },
+    { icon:'🎟️', nombre:'Cupón 10%',               desc:'Obtén un cupón del 10% de descuento para utilizar en tu próxima compra. Recompensa exclusiva de alto valor. Un solo uso.',                                    pts:8000  },
+    { icon:'🏆', nombre:'Embajador Fuchito',        desc:'Un rango especial dentro de la comunidad. Obtén de forma permanente: insignia exclusiva en tu perfil, marco exclusivo, caja diaria mejorada permanente y aparición en el Muro de Embajadores.', pts:12000 },
   ];
 
   // Modal confirmación
@@ -249,12 +259,14 @@
     CANJES.forEach(function(c) {
       var disponible = puntos >= c.pts;
       var item = document.createElement('div');
-      item.className = 'canje-item' + (disponible ? '' : ' bloqueado');
+      var esEmbajador = c.nombre === 'Embajador Fuchito';
+      item.className = 'canje-item' + (disponible ? '' : ' bloqueado') + (esEmbajador ? ' canje-embajador' : '');
 
       item.innerHTML =
         '<div class="canje-left">' +
           '<div class="canje-icon">' + c.icon + '</div>' +
           '<div>' +
+            (esEmbajador ? '<div class="canje-embajador-tag">✦ RANGO ESPECIAL</div>' : '') +
             '<div class="canje-nombre">' + c.nombre + '</div>' +
             '<div class="canje-desc">' + c.desc + '</div>' +
           '</div>' +
