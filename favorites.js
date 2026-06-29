@@ -193,25 +193,26 @@
   function sumarPuntosFavorito(uid, itemId) {
     if (!uid || !window.FSRewards) return;
     var hoy = new Date().toISOString().slice(0, 10);
-    // Verificar si ya recibió puntos por este jersey específico
-    var logRef = window.FS_DB.collection('favPtsLog').doc(uid + '_' + itemId);
-    logRef.get().then(function(logSnap) {
-      if (logSnap.exists) return; // Ya recibió puntos por este jersey, ignorar
+    var userRef = window.FS_DB.collection('usuarios').doc(uid);
+    userRef.get().then(function(snap) {
+      if (!snap.exists) return;
+      var data = snap.data();
 
-      // Verificar límite diario
-      var userRef = window.FS_DB.collection('usuarios').doc(uid);
-      userRef.get().then(function(snap) {
-        if (!snap.exists) return;
-        var data = snap.data();
-        var favHoy = data.favPtsHoy || { fecha: '', count: 0 };
-        if (favHoy.fecha === hoy && favHoy.count >= 10) return;
-        var nuevoCount = favHoy.fecha === hoy ? favHoy.count + 1 : 1;
+      // Anti-farm: verificar si ya recibió puntos por este jersey
+      var favPtsIds = data.favPtsIds || [];
+      if (favPtsIds.indexOf(itemId) !== -1) return;
 
-        // Guardar log permanente de este jersey
-        logRef.set({ uid: uid, itemId: itemId, fecha: hoy });
+      // Límite diario: máx 10 jerseys nuevos por día
+      var favHoy = data.favPtsHoy || { fecha: '', count: 0 };
+      if (favHoy.fecha === hoy && favHoy.count >= 10) return;
+      var nuevoCount = favHoy.fecha === hoy ? favHoy.count + 1 : 1;
 
+      // Actualizar primero para evitar race conditions
+      userRef.update({
+        favPtsIds: firebase.firestore.FieldValue.arrayUnion(itemId),
+        favPtsHoy: { fecha: hoy, count: nuevoCount }
+      }).then(function() {
         window.FSRewards.sumarPuntos(uid, 2.5, function(res) {
-          userRef.update({ favPtsHoy: { fecha: hoy, count: nuevoCount } });
           if (res && res.subioNivel) window.FSToast && window.FSToast('🎉 Subiste a ' + res.nivelNuevo + '!', 'success');
         });
       });
