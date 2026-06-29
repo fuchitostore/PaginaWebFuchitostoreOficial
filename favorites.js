@@ -114,7 +114,6 @@
         updateAllButtons();
         // Sumar 2.5 pts con límite de 10 favoritos/día
         sumarPuntosFavorito(currentUid, itemId);
-        (window.FSToast ? window.FSToast('❤️ +2.5 FuchiPoints', 'success') : null);
       }).catch(function (e) { console.warn('[Favoritos] Error al guardar:', e); });
     }
   }
@@ -212,6 +211,7 @@
         favPtsIds: firebase.firestore.FieldValue.arrayUnion(itemId),
         favPtsHoy: { fecha: hoy, count: nuevoCount }
       }).then(function() {
+        window.FSToast && window.FSToast('❤️ +2.5 FuchiPoints', 'success');
         window.FSRewards.sumarPuntos(uid, 2.5, function(res) {
           if (res && res.subioNivel) window.FSToast && window.FSToast('🎉 Subiste a ' + res.nivelNuevo + '!', 'success');
         });
@@ -226,4 +226,3 @@
   };
 
 })();
-               
