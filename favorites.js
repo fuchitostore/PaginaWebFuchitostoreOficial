@@ -113,7 +113,7 @@
         favCache[itemId] = true;
         updateAllButtons();
         // Sumar 2.5 pts con límite de 10 favoritos/día
-        sumarPuntosFavorito(currentUid);
+        sumarPuntosFavorito(currentUid, itemId);
         (window.FSToast ? window.FSToast('❤️ +2.5 FuchiPoints', 'success') : null);
       }).catch(function (e) { console.warn('[Favoritos] Error al guardar:', e); });
     }
@@ -190,19 +190,32 @@
   observer.observe(document.body, { childList: true, subtree: true });
 
   // ── Sumar puntos por favorito (anti-farm: máx 10/día) ─────
-  function sumarPuntosFavorito(uid) {
+  // IDs de jerseys que el usuario ya recibió puntos alguna vez (guardado en Firestore)
+  function sumarPuntosFavorito(uid, itemId) {
     if (!uid || !window.FSRewards) return;
     var hoy = new Date().toISOString().slice(0, 10);
     var ref = window.FS_DB.collection('usuarios').doc(uid);
     ref.get().then(function(snap) {
       if (!snap.exists) return;
       var data = snap.data();
+
+      // Anti-farm 1: Solo si nunca ha recibido puntos por este jersey específico
+      var favPtsIds = data.favPtsIds || [];
+      if (favPtsIds.indexOf(itemId) !== -1) return;
+
+      // Anti-farm 2: Máximo 10 jerseys nuevos por día
       var favHoy = data.favPtsHoy || { fecha: '', count: 0 };
-      if (favHoy.fecha === hoy && favHoy.count >= 10) return; // límite diario
+      if (favHoy.fecha === hoy && favHoy.count >= 10) return;
+
       var nuevoCount = favHoy.fecha === hoy ? favHoy.count + 1 : 1;
+      var nuevosIds = favPtsIds.concat([itemId]);
+
       window.FSRewards.sumarPuntos(uid, 2.5, function(res) {
-        ref.update({ favPtsHoy: { fecha: hoy, count: nuevoCount } });
-        if (res && res.subioNivel) showToast('🎉 Subiste a ' + res.nivelNuevo + '!');
+        ref.update({
+          favPtsHoy: { fecha: hoy, count: nuevoCount },
+          favPtsIds: nuevosIds
+        });
+        if (res && res.subioNivel) window.FSToast && window.FSToast('🎉 Subiste a ' + res.nivelNuevo + '!', 'success');
       });
     });
   }
@@ -214,4 +227,3 @@
   };
 
 })();
-
