@@ -288,12 +288,15 @@
     nota.innerHTML = '📸 Al canjear se genera un recibo — tómale foto y mándanosla por WhatsApp para activar tu beneficio.<br><strong>Los puntos se descuentan automáticamente al confirmar.</strong>';
     section.appendChild(nota);
 
-    var favSection = document.getElementById('favoritos');
-    var content    = document.getElementById('acc-content');
-    if (favSection) {
+    var recompensas = document.getElementById('recompensas');
+    var favSection  = document.getElementById('favoritos');
+    var accContent  = document.getElementById('acc-content');
+    if (recompensas && recompensas.nextSibling) {
+      recompensas.parentNode.insertBefore(section, recompensas.nextSibling);
+    } else if (favSection) {
       favSection.parentNode.insertBefore(section, favSection);
-    } else if (content) {
-      content.appendChild(section);
+    } else if (accContent) {
+      accContent.appendChild(section);
     }
 
     // Eventos de canje
@@ -308,6 +311,7 @@
   }
 
   function init() {
+    if (!window.FS_AUTH) { setTimeout(init, 300); return; }
     window.FS_AUTH.onAuthStateChanged(function(user) {
       if (!user) return;
       window.FS_DB.collection('usuarios').doc(user.uid).get().then(function(snap) {
@@ -317,10 +321,6 @@
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  setTimeout(init, 500);
 
 })();
