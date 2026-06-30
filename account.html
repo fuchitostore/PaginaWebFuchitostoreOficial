@@ -47,7 +47,46 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
   background:linear-gradient(135deg,var(--neon),#00a8ff);
   display:flex;align-items:center;justify-content:center;
   font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--bg);
-  overflow:hidden;border:2px solid rgba(57,255,20,0.3)}
+  overflow:hidden;border:2px solid rgba(57,255,20,0.3);position:relative}
+.acc-avatar-box{position:relative;flex-shrink:0;width:80px;height:80px}
+.acc-avatar-edit{position:absolute;bottom:-2px;right:-2px;width:28px;height:28px;
+  border-radius:50%;background:var(--neon);border:2px solid var(--bg);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:0.8rem;transition:transform 0.15s}
+.acc-avatar-edit:hover{transform:scale(1.08)}
+.acc-avatar-edit input{display:none}
+.acc-avatar-wrap.uploading{opacity:0.5}
+.acc-avatar-spinner{position:absolute;inset:0;display:none;align-items:center;
+  justify-content:center;background:rgba(0,0,0,0.4);border-radius:50%}
+.acc-avatar-wrap.uploading .acc-avatar-spinner{display:flex}
+.acc-avatar-spinner .acc-spinner{width:22px;height:22px;margin:0;border-width:2px}
+
+/* MODAL SELECCION DE AVATAR */
+.acc-avatar-modal-overlay{display:none;position:fixed;inset:0;z-index:9000;
+  background:rgba(9,9,15,0.88);backdrop-filter:blur(10px);
+  align-items:center;justify-content:center}
+.acc-avatar-modal-overlay.open{display:flex}
+.acc-avatar-modal{background:var(--bg2);border:1px solid rgba(57,255,20,0.2);
+  border-radius:16px;padding:32px 28px;width:100%;max-width:380px;
+  box-shadow:0 0 60px rgba(57,255,20,0.08);position:relative}
+.acc-avatar-modal h3{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;
+  letter-spacing:1px;text-align:center;margin-bottom:20px}
+.acc-avatar-modal-close{position:absolute;top:14px;right:14px;background:transparent;
+  border:none;color:rgba(255,255,255,0.35);font-size:1.2rem;cursor:pointer;line-height:1}
+.acc-avatar-modal-close:hover{color:var(--white)}
+.acc-upload-btn{width:100%;padding:13px;border-radius:8px;border:1px solid rgba(255,255,255,0.12);
+  background:var(--bg3);color:var(--white);font-weight:600;font-size:0.85rem;cursor:pointer;
+  transition:border-color 0.2s}
+.acc-upload-btn:hover{border-color:rgba(57,255,20,0.4)}
+.acc-avatar-divider{display:flex;align-items:center;gap:10px;margin:20px 0}
+.acc-avatar-divider span{font-size:0.7rem;color:rgba(255,255,255,0.35);white-space:nowrap}
+.acc-avatar-divider::before,.acc-avatar-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08)}
+.acc-preset-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.acc-preset-item{aspect-ratio:1;border-radius:50%;border:2px solid transparent;
+  display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+  cursor:pointer;transition:transform 0.15s,border-color 0.15s}
+.acc-preset-item:hover{transform:scale(1.08)}
+.acc-preset-item.selected{border-color:var(--white)}
 .acc-meta{flex:1}
 .acc-meta h1{font-family:'Bebas Neue',sans-serif;font-size:2rem;letter-spacing:1px;line-height:1.1}
 .acc-meta-email{font-size:0.78rem;color:var(--muted);margin-top:4px}
@@ -167,7 +206,13 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
 
     <!-- CABECERA -->
     <div class="acc-header">
-      <div class="acc-avatar-wrap" id="acc-avatar">U</div>
+      <div class="acc-avatar-box">
+        <div class="acc-avatar-wrap" id="acc-avatar">U
+          <div class="acc-avatar-spinner" id="acc-avatar-spinner"><div class="acc-spinner"></div></div>
+        </div>
+        <button type="button" class="acc-avatar-edit" id="acc-avatar-edit-btn" title="Cambiar foto de perfil">📷</button>
+        <input type="file" id="acc-avatar-input" accept="image/png,image/jpeg,image/webp" style="display:none">
+      </div>
       <div class="acc-meta">
         <h1 id="acc-nombre">—</h1>
         <div class="acc-meta-email" id="acc-email">—</div>
@@ -238,6 +283,17 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
   </div>
 </div>
 
+<!-- MODAL SELECCION DE AVATAR -->
+<div class="acc-avatar-modal-overlay" id="acc-avatar-modal">
+  <div class="acc-avatar-modal">
+    <button type="button" class="acc-avatar-modal-close" id="acc-avatar-modal-close">✕</button>
+    <h3>Cambiar foto de perfil</h3>
+    <button type="button" class="acc-upload-btn" id="acc-upload-trigger">📤 Subir mi propia foto</button>
+    <div class="acc-avatar-divider"><span>o elige un avatar</span></div>
+    <div class="acc-preset-grid" id="acc-preset-grid"></div>
+  </div>
+</div>
+
 <script src="firebase-config.js"></script>
 <script src="auth.js"></script>
 <script src="rewards.js"></script>
@@ -246,4 +302,3 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
 
 </body>
 </html>
-
