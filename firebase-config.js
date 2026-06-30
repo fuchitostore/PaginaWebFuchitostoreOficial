@@ -20,8 +20,8 @@
     firebase.initializeApp(firebaseConfig);
   }
 
-  window.FS_AUTH = firebase.auth();
-  window.FS_DB   = firebase.firestore();
+  window.FS_AUTH    = firebase.auth();
+  window.FS_DB      = firebase.firestore();
 
   window.FS_AUTH.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
     .catch(function (err) { console.warn('[FuchitoStore] Auth persistence:', err.message); });
