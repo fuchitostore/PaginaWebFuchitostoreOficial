@@ -168,8 +168,13 @@
       'auth/weak-password': 'La contrasena debe tener al menos 6 caracteres.',
       'auth/invalid-email': 'El correo no es valido.',
       'auth/popup-closed-by-user': 'Cancelaste el inicio con Google.',
-      'auth/invalid-credential': 'Correo o contrasena incorrectos.'
+      'auth/invalid-credential': 'Correo o contrasena incorrectos.',
+      'auth/unauthorized-domain': 'Este sitio no esta autorizado en Firebase (agrega el dominio en Authentication > Settings > Authorized domains).',
+      'auth/popup-blocked': 'El navegador bloqueo la ventana de Google. Permite ventanas emergentes e intenta de nuevo.',
+      'auth/cancelled-popup-request': 'Se cancelo la solicitud anterior. Intenta de nuevo.',
+      'auth/network-request-failed': 'Error de conexion. Revisa tu internet e intenta de nuevo.'
     };
+    if (!msgs[code]) console.warn('[FuchitoStore] Codigo de error sin traducir:', code);
     return msgs[code] || 'Ocurrio un error. Intenta de nuevo.';
   }
 
@@ -191,7 +196,12 @@
 
   function googleAuth() {
     var provider = new firebase.auth.GoogleAuthProvider();
-    return window.FS_AUTH.signInWithPopup(provider);
+    return window.FS_AUTH.signInWithPopup(provider).catch(function (e) {
+      if (e.code === 'auth/popup-blocked' || e.code === 'auth/cancelled-popup-request') {
+        return window.FS_AUTH.signInWithRedirect(provider);
+      }
+      throw e;
+    });
   }
 
   document.querySelectorAll('.fs-tab').forEach(function (tab) {
