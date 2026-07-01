@@ -127,6 +127,20 @@
     navEl.appendChild(navWrapper);
   }
 
+  // Botón de Mensajes, siempre visible junto al botón de cuenta
+  window.FS_AUTH.onAuthStateChanged(function (user) {
+    var existente = document.getElementById('fs-msg-link');
+    if (existente) existente.remove();
+    if (!user) return;
+
+    var mensajesLink = document.createElement('a');
+    mensajesLink.id = 'fs-msg-link';
+    mensajesLink.href = basePath + 'chat.html';
+    mensajesLink.textContent = '💬 Mensajes';
+    mensajesLink.style.cssText = 'font-size:0.78rem;font-weight:600;color:var(--neon);text-decoration:none;margin-right:12px;white-space:nowrap';
+    navWrapper.parentNode.insertBefore(mensajesLink, navWrapper);
+  });
+
   var overlay = document.getElementById('fs-auth-overlay');
   var navBtn = document.getElementById('fs-nav-btn');
   var navMenu = document.getElementById('fs-nav-menu');
