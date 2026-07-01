@@ -315,3 +315,7 @@
   window.FSAuth = { openModal: openModal, closeModal: closeModal };
 
 })();
+
+  window.FSAuth = { openModal: openModal, closeModal: closeModal };
+
+})();
