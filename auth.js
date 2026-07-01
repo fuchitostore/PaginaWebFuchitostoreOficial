@@ -112,7 +112,7 @@
 
   var navWrapper = document.createElement('div');
   navWrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center';
-  navWrapper.innerHTML = '<button id="fs-nav-btn">Mi cuenta</button><div id="fs-nav-menu"><a href="' + basePath + 'account.html" class="fs-menu-item">Mi perfil</a><a href="' + basePath + 'chat.html" class="fs-menu-item">💬 Mensajes</a><a href="' + basePath + 'account.html#micoleccion" class="fs-menu-item">Mi Coleccion</a><a href="' + basePath + 'account.html#recompensas" class="fs-menu-item">FuchiPoints</a><hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:4px 0"><button class="fs-menu-item danger" id="fs-logout-btn">Cerrar sesion</button></div>';
+  navWrapper.innerHTML = '<button id="fs-nav-btn">Mi cuenta</button><div id="fs-nav-menu"><a href="' + basePath + 'account.html" class="fs-menu-item">Mi perfil</a><a href="' + basePath + 'account.html#micoleccion" class="fs-menu-item">Mi Coleccion</a><a href="' + basePath + 'account.html#recompensas" class="fs-menu-item">FuchiPoints</a><hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:4px 0"><button class="fs-menu-item danger" id="fs-logout-btn">Cerrar sesion</button></div>';
 
   // Insertar link Nosotros antes del botón de cuenta
   var slot = document.getElementById('fs-nav-slot');
@@ -126,20 +126,6 @@
   } else if (navEl) {
     navEl.appendChild(navWrapper);
   }
-
-  // Botón de Mensajes, siempre visible junto al botón de cuenta
-  window.FS_AUTH.onAuthStateChanged(function (user) {
-    var existente = document.getElementById('fs-msg-link');
-    if (existente) existente.remove();
-    if (!user) return;
-
-    var mensajesLink = document.createElement('a');
-    mensajesLink.id = 'fs-msg-link';
-    mensajesLink.href = basePath + 'chat.html';
-    mensajesLink.textContent = '💬 Mensajes';
-    mensajesLink.style.cssText = 'font-size:0.78rem;font-weight:600;color:var(--neon);text-decoration:none;margin-right:12px;white-space:nowrap';
-    navWrapper.parentNode.insertBefore(mensajesLink, navWrapper);
-  });
 
   var overlay = document.getElementById('fs-auth-overlay');
   var navBtn = document.getElementById('fs-nav-btn');
@@ -196,15 +182,8 @@
     var ref = window.FS_DB.collection('usuarios').doc(user.uid);
     return ref.get().then(function (snap) {
       if (!snap.exists) {
-        var nombreFinal = user.displayName || (extraData && extraData.nombre) || 'Usuario';
-        // Perfil público, visible para cualquier usuario logueado (usado por la mensajería)
-        window.FS_DB.collection('perfilesPublicos').doc(user.uid).set({
-          displayName: nombreFinal,
-          photoURL: user.photoURL || null
-        }).catch(function (e) { console.warn('[FuchitoStore] perfilesPublicos:', e.message); });
-
         return ref.set(Object.assign({
-          nombre: nombreFinal,
+          nombre: user.displayName || (extraData && extraData.nombre) || 'Usuario',
           email: user.email,
           fechaRegistro: firebase.firestore.FieldValue.serverTimestamp(),
           totalCompras: 0,
