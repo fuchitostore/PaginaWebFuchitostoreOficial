@@ -112,7 +112,7 @@
 
   var navWrapper = document.createElement('div');
   navWrapper.style.cssText = 'position:relative;display:inline-flex;align-items:center';
-  navWrapper.innerHTML = '<button id="fs-nav-btn">Mi cuenta</button><div id="fs-nav-menu"><a href="' + basePath + 'account.html" class="fs-menu-item">Mi perfil</a><a href="' + basePath + 'account.html#micoleccion" class="fs-menu-item">Mi Coleccion</a><a href="' + basePath + 'account.html#recompensas" class="fs-menu-item">FuchiPoints</a><hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:4px 0"><button class="fs-menu-item danger" id="fs-logout-btn">Cerrar sesion</button></div>';
+  navWrapper.innerHTML = '<button id="fs-nav-btn">Mi cuenta</button><div id="fs-nav-menu"><a href="' + basePath + 'account.html" class="fs-menu-item">Mi perfil</a><a href="' + basePath + 'chat.html" class="fs-menu-item">💬 Mensajes</a><a href="' + basePath + 'account.html#micoleccion" class="fs-menu-item">Mi Coleccion</a><a href="' + basePath + 'account.html#recompensas" class="fs-menu-item">FuchiPoints</a><hr style="border:none;border-top:1px solid rgba(255,255,255,0.07);margin:4px 0"><button class="fs-menu-item danger" id="fs-logout-btn">Cerrar sesion</button></div>';
 
   // Insertar link Nosotros antes del botón de cuenta
   var slot = document.getElementById('fs-nav-slot');
