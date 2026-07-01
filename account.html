@@ -280,6 +280,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
       </div>
     </div>
 
+    <!-- MENSAJERÍA: OTROS USUARIOS -->
+    <div class="acc-section" id="otros-usuarios">
+      <div class="acc-section-title">💬 Usuarios</div>
+      <div id="acc-usuarios-list" class="acc-favs-list">
+        <div class="acc-loading" style="padding:20px">
+          <div class="acc-spinner"></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -296,9 +306,45 @@ nav{position:fixed;top:0;left:0;right:0;z-index:500;height:62px;
 
 <script src="firebase-config.js"></script>
 <script src="auth.js"></script>
+<script src="mensajeria.js"></script>
 <script src="rewards.js"></script>
 <script src="account.js"></script>
 <script src="canje.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  window.FS_AUTH.onAuthStateChanged(function (user) {
+    if (!user) return;
+    var lista = document.getElementById('acc-usuarios-list');
+    if (!lista) return;
+
+    window.FS_DB.collection('perfilesPublicos').get().then(function (snap) {
+      lista.innerHTML = '';
+      var otros = snap.docs.filter(function (d) { return d.id !== user.uid; });
+
+      if (otros.length === 0) {
+        lista.innerHTML = '<div class="acc-empty">Todavía no hay más usuarios registrados.</div>';
+        return;
+      }
+
+      otros.forEach(function (d) {
+        var data = d.data();
+        var nombre = data.displayName || 'Usuario';
+        var card = document.createElement('div');
+        card.className = 'acc-fav-card';
+        card.innerHTML =
+          '<div><div class="acc-fav-name">' + nombre + '</div></div>' +
+          '<a href="chat.html?uid=' + d.id + '" class="acc-fav-remove" style="color:var(--neon);border-color:rgba(57,255,20,0.3);text-decoration:none">💬 Enviar mensaje</a>';
+        lista.appendChild(card);
+      });
+    }).catch(function (e) {
+      lista.innerHTML = '<div class="acc-empty">No se pudo cargar la lista de usuarios.</div>';
+      console.warn('[FuchitoStore] perfilesPublicos list:', e.message);
+    });
+  });
+})();
+</script>
 
 </body>
 </html>
