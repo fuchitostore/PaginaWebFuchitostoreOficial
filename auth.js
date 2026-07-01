@@ -182,8 +182,15 @@
     var ref = window.FS_DB.collection('usuarios').doc(user.uid);
     return ref.get().then(function (snap) {
       if (!snap.exists) {
+        var nombreFinal = user.displayName || (extraData && extraData.nombre) || 'Usuario';
+        // Perfil público, visible para cualquier usuario logueado (usado por la mensajería)
+        window.FS_DB.collection('perfilesPublicos').doc(user.uid).set({
+          displayName: nombreFinal,
+          photoURL: user.photoURL || null
+        }).catch(function (e) { console.warn('[FuchitoStore] perfilesPublicos:', e.message); });
+
         return ref.set(Object.assign({
-          nombre: user.displayName || (extraData && extraData.nombre) || 'Usuario',
+          nombre: nombreFinal,
           email: user.email,
           fechaRegistro: firebase.firestore.FieldValue.serverTimestamp(),
           totalCompras: 0,
