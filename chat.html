@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mensajes — FuchitoStore</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#09090f;--bg2:#0f0f18;--bg3:#14141f;--bg4:#1c1c2a;
+  --neon:#39FF14;--gold:#FFB700;--red:#FF3B3B;
+  --white:#fff;--muted:rgba(255,255,255,0.45);--border:rgba(255,255,255,0.07);
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--white);height:100vh;overflow:hidden}
+
+.msg-page{display:flex;height:100vh;max-width:1000px;margin:0 auto;background:var(--bg2)}
+
+/* LISTA DE CHATS */
+.msg-sidebar{width:300px;border-right:1px solid var(--border);overflow-y:auto;flex-shrink:0}
+.msg-sidebar h2{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1.5px;
+  padding:20px;border-bottom:1px solid var(--border)}
+.chat-item{padding:14px 20px;cursor:pointer;border-bottom:1px solid var(--border);transition:background 0.15s}
+.chat-item:hover,.chat-item.activo{background:rgba(57,255,20,0.06)}
+.chat-item .nombre{font-weight:700;font-size:0.85rem;margin-bottom:3px}
+.chat-item .ultimo{font-size:0.75rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.msg-empty-list{padding:24px 20px;color:var(--muted);font-size:0.8rem}
+
+/* VENTANA DE CHAT */
+.msg-ventana{flex:1;display:flex;flex-direction:column;min-width:0}
+.msg-header{padding:18px 20px;border-bottom:1px solid var(--border);font-weight:700;font-size:0.9rem}
+.mensajes{flex:1;padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.mensaje{max-width:65%;padding:10px 14px;border-radius:14px;font-size:0.85rem;line-height:1.4}
+.mensaje.propio{align-self:flex-end;background:var(--neon);color:var(--bg);font-weight:600;border-bottom-right-radius:4px}
+.mensaje.otro{align-self:flex-start;background:var(--bg3);color:var(--white);border-bottom-left-radius:4px}
+.form-mensaje{display:flex;gap:10px;padding:16px 20px;border-top:1px solid var(--border)}
+.form-mensaje input{flex:1;padding:12px 16px;border-radius:20px;border:1px solid var(--border);
+  background:var(--bg3);color:var(--white);font-size:0.85rem;outline:none;font-family:'Inter',sans-serif}
+.form-mensaje input:focus{border-color:rgba(57,255,20,0.4)}
+.form-mensaje button{background:var(--neon);color:var(--bg);border:none;border-radius:20px;
+  padding:0 22px;cursor:pointer;font-weight:700;font-size:0.85rem}
+.form-mensaje button:hover{opacity:0.85}
+.vacio{margin:auto;color:var(--muted);font-size:0.85rem}
+
+@media(max-width:640px){
+  .msg-sidebar{width:100%;position:absolute;inset:0;z-index:2;background:var(--bg2)}
+  .msg-sidebar.oculto{display:none}
+  .msg-ventana{width:100%}
+}
+</style>
+</head>
+<body>
+
+<div class="msg-page">
+  <aside class="msg-sidebar" id="msgSidebar">
+    <h2>💬 Mensajes</h2>
+    <div id="listaChats"></div>
+  </aside>
+
+  <main class="msg-ventana">
+    <div class="msg-header" id="msgHeader" style="display:none"></div>
+    <div class="mensajes" id="mensajes">
+      <p class="vacio">Selecciona una conversación</p>
+    </div>
+    <form class="form-mensaje" id="formMensaje" style="display:none">
+      <input type="text" id="inputMensaje" placeholder="Escribe un mensaje..." autocomplete="off">
+      <button type="submit">Enviar</button>
+    </form>
+  </main>
+</div>
+
+<script src="firebase-config.js"></script>
+<script src="auth.js"></script>
+<script src="mensajeria.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  var listaChats = document.getElementById('listaChats');
+  var divMensajes = document.getElementById('mensajes');
+  var msgHeader = document.getElementById('msgHeader');
+  var formMensaje = document.getElementById('formMensaje');
+  var inputMensaje = document.getElementById('inputMensaje');
+
+  var chatActivoId = null;
+  var uidActual = null;
+  var unsubMensajes = null;
+
+  window.FS_AUTH.onAuthStateChanged(function (user) {
+    if (!user) {
+      divMensajes.innerHTML = '<p class="vacio">Inicia sesión para ver tus mensajes.</p>';
+      return;
+    }
+    uidActual = user.uid;
+    window.FS_MSG.escucharChats(renderizarListaChats);
+
+    // Si llegamos con ?uid=xxx en la URL, abrimos/creamos el chat directo
+    var params = new URLSearchParams(window.location.search);
+    var otroUid = params.get('uid');
+    if (otroUid) {
+      window.FS_MSG.iniciarChat(otroUid).then(abrirChat);
+    }
+  });
+
+  function renderizarListaChats(chats) {
+    listaChats.innerHTML = '';
+    if (chats.length === 0) {
+      listaChats.innerHTML = '<div class="msg-empty-list">Aún no tienes conversaciones.</div>';
+      return;
+    }
+    chats.forEach(function (chat) {
+      var otroUid = chat.participants.filter(function (id) { return id !== uidActual; })[0];
+      var div = document.createElement('div');
+      div.className = 'chat-item' + (chat.id === chatActivoId ? ' activo' : '');
+      div.innerHTML = '<div class="nombre">Cargando...</div><div class="ultimo">' +
+        (chat.lastMessage || 'Sin mensajes') + '</div>';
+      listaChats.appendChild(div);
+
+      window.FS_MSG.obtenerPerfilPublico(otroUid).then(function (perfil) {
+        div.querySelector('.nombre').textContent = (perfil && perfil.displayName) || 'Usuario';
+      });
+
+      div.addEventListener('click', function () { abrirChat(chat.id); });
+    });
+  }
+
+  function abrirChat(chatId) {
+    chatActivoId = chatId;
+    formMensaje.style.display = 'flex';
+    msgHeader.style.display = 'block';
+    msgHeader.textContent = 'Cargando...';
+
+    var chatDoc = window.FS_DB.collection('chats').doc(chatId);
+    chatDoc.get().then(function (snap) {
+      var data = snap.data();
+      var otroUid = data.participants.filter(function (id) { return id !== uidActual; })[0];
+      return window.FS_MSG.obtenerPerfilPublico(otroUid);
+    }).then(function (perfil) {
+      msgHeader.textContent = (perfil && perfil.displayName) || 'Usuario';
+    });
+
+    if (unsubMensajes) unsubMensajes();
+    unsubMensajes = window.FS_MSG.escucharMensajes(chatId, renderizarMensajes);
+  }
+
+  function renderizarMensajes(mensajes) {
+    divMensajes.innerHTML = '';
+    mensajes.forEach(function (msg) {
+      var div = document.createElement('div');
+      div.className = 'mensaje ' + (msg.senderId === uidActual ? 'propio' : 'otro');
+      div.textContent = msg.text;
+      divMensajes.appendChild(div);
+    });
+    divMensajes.scrollTop = divMensajes.scrollHeight;
+  }
+
+  formMensaje.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (!chatActivoId || !inputMensaje.value.trim()) return;
+    window.FS_MSG.enviarMensaje(chatActivoId, inputMensaje.value);
+    inputMensaje.value = '';
+  });
+
+})();
+</script>
+
+</body>
+</html>
